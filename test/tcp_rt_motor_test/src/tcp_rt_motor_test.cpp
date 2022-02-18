@@ -8,6 +8,7 @@
 #include "Macro.h"
 #include "schedDeadline.h"
 #include "tcpPacket.h"
+#include "udpPacket.h"
 
 
 #define PI  3.14159265359
@@ -17,7 +18,7 @@
 
 
 char IOmap[4096];
-OSAL_THREAD_HANDLE thread1, thread2;
+OSAL_THREAD_HANDLE thread1, thread2, thread3;
 int expectedWKC;
 boolean needlf;
 volatile int wkc;
@@ -34,6 +35,7 @@ short mode;
 int iValue;
 SINUSOIDAL_VELOCITY_INPUT sineValue;
 
+UDP_Packet* pUdpPacket;
 
 void velocityMode(RX_PDO* rxPDO, int32 iVelocity)
 {
@@ -315,6 +317,8 @@ OSAL_THREAD_FUNC ecatthread()
         pthread_cancel(pthread_self());
     }
 
+    pUdpPacket = new UDP_Packet;
+
     toff = 0;
     dorun = 0;
     ec_send_processdata();
@@ -398,6 +402,14 @@ OSAL_THREAD_FUNC ecatthread()
             printf("| [Velocity: %6d], [Torque: %5d] ", txPDO->velocity_actual_value, txPDO->torque_actual_value);
             fflush(stdout);
 
+            short header = 0001;
+            int32 iData = txPDO->velocity_actual_value;
+            int16 siData = txPDO->torque_actual_value;
+            pUdpPacket->setCommandHeader(header);
+            pUdpPacket->encode(iData);
+            pUdpPacket->encode(siData);
+            pUdpPacket->sendPacket();
+
             if (ec_slave[0].hasdc)
             {
                 /* calculate toff to get linux time and DC synced */
@@ -410,6 +422,8 @@ OSAL_THREAD_FUNC ecatthread()
             printf("| [Task time: %.4lfms], ", (t_taskEnd - t_loopStart) / 1000000.0);
         }
     }
+
+    delete pUdpPacket;
 
     printf("End motor test, close socket\n");
     ec_close();
@@ -500,6 +514,30 @@ OSAL_THREAD_FUNC ecatcheck()
     }
 }
 
+// OSAL_THREAD_FUNC udpThread()
+// {
+//     while (dorun)
+//     {
+//         pUdpPacket = new UDP_Packet;
+
+//         printf("\n\n@@@@@@@ UDP CONNECTED @@@@@@@\n\n");
+
+//         short header = 0001;
+//         int32 iData = txPDO->velocity_actual_value;
+//         int16 siData = txPDO->torque_actual_value;
+//         pUdpPacket->setCommandHeader(header);
+//         pUdpPacket->encode(iData);
+//         pUdpPacket->encode(siData);
+//         pUdpPacket->sendPacket();
+
+//         // printf("\n\nvelocity: %d\n\n", iData);
+
+//         osal_usleep(10000);
+//     }
+
+//     delete pUdpPacket;
+// }
+
 int main(int argc, char *argv[])
 {
     printf("SOEM (Simple Open EtherCAT Master)\n< Motor test >\n");
@@ -510,7 +548,10 @@ int main(int argc, char *argv[])
         osal_thread_create(&thread1, 128000, (void*)&ecatthread, NULL);
 
         /* create thread to handle slave error handling in OP */
-        osal_thread_create(&thread1, 128000, (void*)&ecatcheck, NULL);
+        osal_thread_create(&thread2, 128000, (void*)&ecatcheck, NULL);
+
+        /* create UDP thread */
+        // osal_thread_create(&thread3, 128000, (void*)&udpThread, NULL);
 
         /* start acyclic part */
         simpletest(argv[1]);

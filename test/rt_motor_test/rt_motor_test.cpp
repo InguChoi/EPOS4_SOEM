@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
         osal_thread_create(&thread1, 128000, (void*)&ecatthread, NULL);
 
         /* create thread to handle slave error handling in OP */
-        osal_thread_create(&thread1, 128000, (void*)&ecatcheck, NULL);
+        osal_thread_create(&thread2, 128000, (void*)&ecatcheck, NULL);
 
         /* start acyclic part */
         simpletest(argv[1]);

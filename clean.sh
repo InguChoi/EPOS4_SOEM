@@ -12,6 +12,8 @@ cd ../rt_motor_test
 make clean
 cd ../tcp_rt_motor_test
 make clean
+cd ../now_testing
+make clean
 cd ..
 cd ..
 

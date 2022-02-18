@@ -1,13 +1,6 @@
 #include "tcpPacket.h"
 
 
-void errorHandling(char *errmsg)
-{
-    fputs(errmsg, stderr);
-    fputc('\n', stderr);
-    exit(1);
-}
-
 TCP_Packet::TCP_Packet()
 {
     memset(&server_addr, 0, sizeof(server_addr));

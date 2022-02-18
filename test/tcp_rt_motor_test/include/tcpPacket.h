@@ -1,20 +1,15 @@
 #ifndef TCPPACKET_H_
 #define TCPPACKET_H_
 
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "errorHandling.h"
 #include "Macro.h"
-
-#define RX_BUFFER_SIZE 1024
-#define PACKET_BUFFER_SIZE 1024
-
 
 class TCP_Packet
 {
@@ -41,12 +36,12 @@ private:
     int client_addr_size = sizeof(client_addr);
     int server_fd, client_fd;
 
+    short header;
+    int decodeIndex;
     unsigned char rxBuffer[RX_BUFFER_SIZE];
     unsigned char packetBuffer[PACKET_BUFFER_SIZE];
-    int retval;
-    int decodeIndex;
 
-    short header;
+    int retval;
 };
 
 #endif /* TCPPACKET_H_ */

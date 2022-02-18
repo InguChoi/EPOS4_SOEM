@@ -12,6 +12,8 @@ cd ../rt_motor_test
 make
 cd ../tcp_rt_motor_test
 make
+cd ../now_testing
+make
 cd ..
 cd ..
 
