@@ -8,7 +8,7 @@ Prerequisites
  * CMake 3.9 or later
 
 
-Linux & macOS
+Linux
 --------------
 
    * `mkdir build`
