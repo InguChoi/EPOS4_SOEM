@@ -19,9 +19,8 @@ Realtime EtherCAT master for EPOS4 motor control based on TCP/IP connection(Stri
       sudo make
 
 **CLEAN:**
-+
++ Clean binary files:
       ./clean.sh
-
 
 **RUN:**
 * Check information of all slaves on bus:
