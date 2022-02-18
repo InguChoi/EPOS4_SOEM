@@ -20,6 +20,7 @@ Realtime EtherCAT master for EPOS4 motor control based on TCP/IP connection(Stri
 
 **CLEAN:**
 + Clean binary files:
+
       ./clean.sh
 
 **RUN:**
