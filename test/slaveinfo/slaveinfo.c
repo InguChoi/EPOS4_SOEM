@@ -15,7 +15,14 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "ethercat.h"
+#include "ethercattype.h"
+#include "nicdrv.h"
+#include "ethercatbase.h"
+#include "ethercatmain.h"
+#include "ethercatconfig.h"
+#include "ethercatcoe.h"
+#include "ethercatdc.h"
+#include "ethercatprint.h"
 
 char IOmap[4096];
 ec_ODlistt ODlist;
@@ -37,7 +44,7 @@ char usdo[128];
 
 char *dtype2string(uint16 dtype, uint16 bitlen)
 {
-    static char str[32] = {0};
+    static char str[32] = { 0 };
 
     switch (dtype)
     {
@@ -118,7 +125,7 @@ char *dtype2string(uint16 dtype, uint16 bitlen)
 
 char *otype2string(uint16 otype)
 {
-    static char str[32] = {0};
+    static char str[32] = { 0 };
 
     switch (otype)
     {
@@ -139,7 +146,7 @@ char *otype2string(uint16 otype)
 
 char *access2string(uint16 access)
 {
-    static char str[32] = {0};
+    static char str[32] = { 0 };
 
     sprintf(str, "%s%s%s%s%s%s",
             ((access & ATYPE_Rpre) != 0 ? "R" : "_"),
@@ -174,7 +181,7 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
     }
     else
     {
-        static char str[64] = {0};
+        static char str[64] = { 0 };
         switch (dtype)
         {
         case ECT_BOOLEAN:
@@ -538,7 +545,7 @@ void si_sdo(int cnt)
         for (i = 0; i < ODlist.Entries; i++)
         {
             uint8_t max_sub;
-            char name[128] = {0};
+            char name[128] = { 0 };
 
             ec_readODdescription(i, &ODlist);
             while (EcatError)
