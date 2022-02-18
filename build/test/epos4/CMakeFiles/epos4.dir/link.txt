@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -Werror -lm   CMakeFiles/epos4.dir/epos4.c.o  -o epos4 ../../libsoem.a -lpthread -lrt 
