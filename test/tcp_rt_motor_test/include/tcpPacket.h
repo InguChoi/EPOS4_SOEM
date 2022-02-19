@@ -17,7 +17,10 @@ public:
     TCP_Packet();
     ~TCP_Packet();
 
-    int readPacket();
+    short getHeader()
+    {
+        return header;
+    }
 
     template<class T>
     void decode(T &val)
@@ -26,10 +29,7 @@ public:
         decodeIndex = decodeIndex + sizeof(val);
     }
 
-    short getHeader()
-    {
-        return header;
-    }
+    int readPacket();
 
 private:
     struct sockaddr_in server_addr, client_addr;
