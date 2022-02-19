@@ -8,7 +8,8 @@
 #include <unistd.h>
 
 #include "errorHandling.h"
-#include "Macro.h"
+
+#define UDP_PORT 3000
 
 class UDP_Packet
 {
@@ -16,7 +17,7 @@ public:
     UDP_Packet();
     ~UDP_Packet();
 
-    void setCommandHeader(short header);
+    void setCommandHeader(uint16_t header);
 
     template <class T>
     void encode(T &val)
@@ -27,12 +28,11 @@ public:
 
     void sendPacket();
 
+
 private:
     struct sockaddr_in server_addr, client_addr;
-    int client_addr_size = sizeof(client_addr);
-    int server_fd, client_fd;
+    int socket_fd;
 
-    short header;
     int encodeIndex;
     unsigned char txBuffer[TX_BUFFER_SIZE];
 };
