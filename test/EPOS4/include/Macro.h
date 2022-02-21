@@ -17,8 +17,26 @@ typedef struct
 {
     int amplitude;
     int frequency;
+
 }SINUSOIDAL_VELOCITY_INPUT;
 
+typedef struct
+{
+    int16                     torque;
+    int32                     velocity;
+    int32                     position;
+    SINUSOIDAL_VELOCITY_INPUT sine_value;
+
+}INPUT_LIST;
+
+typedef struct
+{
+    unsigned int timeStamp;
+
+    int32 velocity_actual_value;
+    int16 torque_actual_value;
+
+}LOG_DATA;
 
 // Structure representing the Object Dictionary
 typedef struct
@@ -80,17 +98,18 @@ typedef struct PACKED
 ///////////////// GUI PC ----> RPI /////////////////
 ////////////////////////////////////////////////////
 
-#define COMMAND_MODE_TARGET_VELOCITY              0x0001
-#define COMMAND_MODE_TARGET_TORQUE                0x0002
-#define COMMAND_MODE_BACK_AND_FORTH_VELOCITY      0x0003
-#define COMMAND_MODE_SINUSOIDAL_VELOCITY          0x0004
+#define COMMAND_MODE_CSV                        0x0001 // Cyclic Synchronous Velocity Mode
+#define COMMAND_MODE_CST                        0x0002 // Cyclic Synchronous Torque Mode
+#define COMMAND_MODE_PPM                        0x0003 // Profile Position Mode
+#define COMMAND_MODE_SINUSOIDAL_VELOCITY        0x0004
+#define COMMAND_MODE_BACK_AND_FORTH_VELOCITY    0x0005
 
 
 ////////////////////////////////////////////////////
 ///////////////// RPI ----> GUI PC /////////////////
 ////////////////////////////////////////////////////
 
-// #define COMMAND_CODE_GET_REGISTRATION_PARAMETERS            0XABC0
-// #define COMMAND_CODE_GET_FILTER_PARAMETERS                  0XABC1
+#define STREAM_MODE            0x0001
+// #define
 
 #endif // MACRO_H

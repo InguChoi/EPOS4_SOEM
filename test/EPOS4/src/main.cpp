@@ -33,21 +33,10 @@ TX_PDO* txPDO;
 
 UDP_Packet* pUdpPacket;
 TCP_Packet* pTcpPacket;
+
 short mode;
-int iValue;
-SINUSOIDAL_VELOCITY_INPUT sineValue;
+INPUT_LIST input;
 
-
-void velocityMode(RX_PDO* rxPDO, int32 iVelocity)
-{
-    rxPDO->mode_of_operation = CSV;
-    rxPDO->target_velocity = iVelocity;
-}
-void torqueMode(RX_PDO* rxPDO, int16 iTorque)
-{
-    rxPDO->mode_of_operation = CST;
-    rxPDO->target_torque = iTorque;
-}
 
 /** Function for PDO mapping **/
 void PdoMapping(uint16 slave)
@@ -252,11 +241,17 @@ OSAL_THREAD_FUNC simpletest(char *ifname)
                         mode = pTcpPacket->getHeader();
                         switch (mode)
                         {
-                            case COMMAND_MODE_SINUSOIDAL_VELOCITY:
-                                pTcpPacket->decode(sineValue);
+                            case COMMAND_MODE_CSV:
+                                pTcpPacket->decode(input.velocity);
                                 break;
-                            default:
-                                pTcpPacket->decode(iValue);
+                            case COMMAND_MODE_CST:
+                                pTcpPacket->decode(input.torque);
+                                break;
+                            case COMMAND_MODE_PPM:
+                                pTcpPacket->decode(input.position);
+                                break;
+                            case COMMAND_MODE_SINUSOIDAL_VELOCITY:
+                                pTcpPacket->decode(input.sine_value);
                                 break;
                         }
                     }
@@ -324,6 +319,8 @@ OSAL_THREAD_FUNC ecatthread()
     dorun = 0;
     ec_send_processdata();
     int cnt = 0;
+    bool Flag = false;
+    int cnt2 = 0;
     int cwFlag = 1;
     while (1)
     {
@@ -365,50 +362,70 @@ OSAL_THREAD_FUNC ecatthread()
             {
                 switch (mode)
                 {
-                    case COMMAND_MODE_TARGET_VELOCITY:
-                        velocityMode(rxPDO, iValue);
+                    case COMMAND_MODE_CSV:
+                        rxPDO->mode_of_operation = CSV;
+                        rxPDO->target_velocity = input.velocity;
                         break;
-                    case COMMAND_MODE_TARGET_TORQUE:
-                        torqueMode(rxPDO, iValue);
+                    case COMMAND_MODE_CST:
+                        rxPDO->mode_of_operation = CST;
+                        rxPDO->target_torque = input.torque;
+                        break;
+                    case COMMAND_MODE_PPM:
+                        if ((cnt % 4) == 0)
+                        {
+                            rxPDO->control_word = 0x3F;
+                            rxPDO->mode_of_operation = PPM;
+                            rxPDO->target_position = input.position;
+
+                            if (txPDO->status_word & 0x1000)
+                            {
+                                rxPDO->control_word = 0x0F;
+                            }
+                        }
+                        cnt++;
+                        break;
+                    case COMMAND_MODE_SINUSOIDAL_VELOCITY:
+                        if (cnt <= 20000)
+                        {
+                            rxPDO->mode_of_operation = CSV;
+                            rxPDO->target_velocity = input.sine_value.amplitude * sin((2 * PI * input.sine_value.frequency) / 1000 * cnt++);
+                        }
+                        else
+                            cnt = 0;
                         break;
                     case COMMAND_MODE_BACK_AND_FORTH_VELOCITY:
                         rxPDO->mode_of_operation = CSV;
-                        rxPDO->target_velocity = cnt;
+                        rxPDO->target_velocity = cnt2;
                         if (cwFlag)
                         {
-                            if (cnt < 20000)
-                                cnt += 10;
+                            if (cnt2 < 20000)
+                                cnt2 += 10;
                             else
                                 cwFlag = 0;
                         }
                         else
                         {
-                            if (cnt > -20000)
-                                cnt -= 10;
+                            if (cnt2 > -20000)
+                                cnt2 -= 10;
                             else
                                 cwFlag = 1;
                         }
                         break;
-                    case COMMAND_MODE_SINUSOIDAL_VELOCITY:
+                    default:    // Stop motor (velocity = 0)
                         rxPDO->mode_of_operation = CSV;
-                        rxPDO->target_velocity = sineValue.amplitude * sin((2 * PI * sineValue.frequency) / 1000 * cnt++);
-                        if (cnt == 20000)
-                            cnt = 0;
-                        break;
-                    default:
-                        rxPDO->mode_of_operation = PPM;
+                        rxPDO->target_velocity = 0;
                         break;
                 }
             }
             printf("| [Velocity: %6d], [Torque: %5d] ", txPDO->velocity_actual_value, txPDO->torque_actual_value);
             fflush(stdout);
 
-            short header = 0001;
-            int32 iData = txPDO->velocity_actual_value;
-            int16 siData = txPDO->torque_actual_value;
+            short header = STREAM_MODE;
+            LOG_DATA logData;
+            logData.velocity_actual_value = txPDO->velocity_actual_value;
+            logData.torque_actual_value = txPDO->torque_actual_value;
             pUdpPacket->setCommandHeader(header);
-            pUdpPacket->encode(iData);
-            pUdpPacket->encode(siData);
+            pUdpPacket->encode(logData);
             pUdpPacket->sendPacket();
 
             if (ec_slave[0].hasdc)
@@ -518,7 +535,7 @@ OSAL_THREAD_FUNC ecatcheck()
 
 int main(int argc, char *argv[])
 {
-    printf("SOEM (Simple Open EtherCAT Master)\n< Motor test >\n");
+    printf("SOEM (Simple Open EtherCAT Master)\n< EPOS4 motor control >\n");
 
     if (argc > 1)
     {
@@ -534,7 +551,7 @@ int main(int argc, char *argv[])
     else
     {
         ec_adaptert *adapter = NULL;
-        printf("Usage: motor_test ifname\nifname = eth0 for example\n");
+        printf("Usage: main ifname\nifname = eth0 for example\n");
 
         printf("\nAvailable adapters:\n");
         adapter = ec_find_adapters();
