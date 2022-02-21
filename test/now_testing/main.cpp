@@ -10,7 +10,7 @@ int main()
     {
         short header = 0001;
         int32_t iData = 1234;
-        int16_t siData = 0101;
+        int16_t siData = 101;
         pUdpPacket->setCommandHeader(header);
         pUdpPacket->encode(iData);
         pUdpPacket->encode(siData);

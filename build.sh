@@ -10,7 +10,7 @@ cd ../motor_test
 make
 cd ../rt_motor_test
 make
-cd ../tcp_rt_motor_test
+cd ../EPOS4
 make
 cd ../now_testing
 make

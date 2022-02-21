@@ -38,7 +38,7 @@ HEADERS = $(wildcard $(INCLUDE_DIR)/*.h)
 
 
 # define the executable file 
-MAIN = tcp_rt_motor_test
+MAIN = main
 
 
 all: $(MAIN)

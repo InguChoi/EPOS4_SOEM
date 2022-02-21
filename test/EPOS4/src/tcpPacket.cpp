@@ -7,7 +7,7 @@ TCP_Packet::TCP_Packet()
     memset(&client_addr, 0, sizeof(client_addr));
 
     if ((server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-        errorHandling("Server: socket() error");
+        errorHandling("TCP: socket() error");
 
     int option = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
@@ -16,13 +16,13 @@ TCP_Packet::TCP_Packet()
     server_addr.sin_port = htons(TCP_PORT);
 
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-        errorHandling("Server: bind() error");
+        errorHandling("TCP: bind() error");
 
     if (listen(server_fd, 5) < 0)
-        errorHandling("Server: listen() error");
+        errorHandling("TCP: listen() error");
 
     if ((client_fd = accept(server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&client_addr_size)) < 0)
-        errorHandling("Server: accept() error");
+        errorHandling("TCP: accept() error");
 
     int flag = fcntl(client_fd, F_GETFL, 0);
     fcntl(client_fd, F_SETFL, flag | O_NONBLOCK);
@@ -41,7 +41,7 @@ int TCP_Packet::readPacket()
     {
         if (errno != EAGAIN)
         {
-            printf("\n\nread() error\n");
+            printf("\n\nTCP: read() error\n");
             errorHandling("----- Socket close -----");
         }
     }

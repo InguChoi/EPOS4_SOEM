@@ -20,22 +20,23 @@
 char IOmap[4096];
 OSAL_THREAD_HANDLE thread1, thread2, thread3;
 int expectedWKC;
-boolean needlf;
+bool needlf;
 volatile int wkc;
-boolean inOP;
+bool inOP;
 uint8 currentgroup = 0;
-int dorun = 1;
+
+bool dorun = false;
 int64 toff, g_delta;
 
 RX_PDO* rxPDO;
 TX_PDO* txPDO;
 
+UDP_Packet* pUdpPacket;
 TCP_Packet* pTcpPacket;
 short mode;
 int iValue;
 SINUSOIDAL_VELOCITY_INPUT sineValue;
 
-UDP_Packet* pUdpPacket;
 
 void velocityMode(RX_PDO* rxPDO, int32 iVelocity)
 {
@@ -182,8 +183,8 @@ void ec_sync(int64 reftime, int64 cycletime, int64 *offsettime)
 
 OSAL_THREAD_FUNC simpletest(char *ifname)
 {
-    needlf = FALSE;
-    inOP = FALSE;
+    needlf = false;
+    inOP = false;
 
     printf("Starting simple test\n");
 
@@ -238,8 +239,8 @@ OSAL_THREAD_FUNC simpletest(char *ifname)
             if (ec_slave[0].state == EC_STATE_OPERATIONAL)
             {
                 printf("\nOperational state reached for all slaves.\n\n");
-                inOP = TRUE;
-                dorun = 1; // activate cyclic rt process
+                inOP = true;
+                dorun = true; // activate cyclic rt process
 
                 pTcpPacket = new TCP_Packet();
 
@@ -263,8 +264,8 @@ OSAL_THREAD_FUNC simpletest(char *ifname)
                 }
 
                 delete pTcpPacket;
-                dorun = 0;
-                inOP = FALSE;
+                dorun = false;
+                inOP = false;
                 sleep(1);
             }
             else
@@ -441,7 +442,7 @@ OSAL_THREAD_FUNC ecatcheck()
         {
             if (needlf)
             {
-                needlf = FALSE;
+                needlf = false;
                 printf("\n");
             }
 
@@ -514,29 +515,6 @@ OSAL_THREAD_FUNC ecatcheck()
     }
 }
 
-// OSAL_THREAD_FUNC udpThread()
-// {
-//     while (dorun)
-//     {
-//         pUdpPacket = new UDP_Packet;
-
-//         printf("\n\n@@@@@@@ UDP CONNECTED @@@@@@@\n\n");
-
-//         short header = 0001;
-//         int32 iData = txPDO->velocity_actual_value;
-//         int16 siData = txPDO->torque_actual_value;
-//         pUdpPacket->setCommandHeader(header);
-//         pUdpPacket->encode(iData);
-//         pUdpPacket->encode(siData);
-//         pUdpPacket->sendPacket();
-
-//         // printf("\n\nvelocity: %d\n\n", iData);
-
-//         osal_usleep(10000);
-//     }
-
-//     delete pUdpPacket;
-// }
 
 int main(int argc, char *argv[])
 {
@@ -549,9 +527,6 @@ int main(int argc, char *argv[])
 
         /* create thread to handle slave error handling in OP */
         osal_thread_create(&thread2, 128000, (void*)&ecatcheck, NULL);
-
-        /* create UDP thread */
-        // osal_thread_create(&thread3, 128000, (void*)&udpThread, NULL);
 
         /* start acyclic part */
         simpletest(argv[1]);

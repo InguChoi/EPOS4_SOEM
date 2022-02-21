@@ -10,7 +10,7 @@ cd ../motor_test
 make clean
 cd ../rt_motor_test
 make clean
-cd ../tcp_rt_motor_test
+cd ../EPOS4
 make clean
 cd ../now_testing
 make clean
