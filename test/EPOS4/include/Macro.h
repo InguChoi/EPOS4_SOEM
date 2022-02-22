@@ -35,6 +35,7 @@ typedef struct
 
     int32 velocity_actual_value;
     int16 torque_actual_value;
+    int32 position_actual_value;
 
 }LOG_DATA;
 
@@ -55,7 +56,7 @@ typedef struct PACKED
     int16   target_torque;
     int32   target_velocity;
     int32   target_position;
-    int32   position_offset;
+    uint32  profile_velocity;
 }RX_PDO;
 typedef struct PACKED
 {
@@ -98,11 +99,13 @@ typedef struct PACKED
 ///////////////// GUI PC ----> RPI /////////////////
 ////////////////////////////////////////////////////
 
+#define COMMAND_MODE_STOP_MOTOR                 0x0000
 #define COMMAND_MODE_CSV                        0x0001 // Cyclic Synchronous Velocity Mode
 #define COMMAND_MODE_CST                        0x0002 // Cyclic Synchronous Torque Mode
 #define COMMAND_MODE_PPM                        0x0003 // Profile Position Mode
 #define COMMAND_MODE_SINUSOIDAL_VELOCITY        0x0004
 #define COMMAND_MODE_BACK_AND_FORTH_VELOCITY    0x0005
+#define COMMAND_MODE_SET_ZERO                   0x0006
 
 
 ////////////////////////////////////////////////////

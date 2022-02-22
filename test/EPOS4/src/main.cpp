@@ -5,10 +5,10 @@
 #include <math.h>
 
 #include "ethercat.h"
-#include "Macro.h"
 #include "schedDeadline.h"
 #include "tcpPacket.h"
 #include "udpPacket.h"
+#include "Macro.h"
 
 
 #define PI  3.14159265359
@@ -51,7 +51,7 @@ void PdoMapping(uint16 slave)
     OBJ RxPDO3 = { 0x1600, 0x03, sizeof(uint32), 0x60710010 };   // 0x60710010 : target_torque              Int16
     OBJ RxPDO4 = { 0x1600, 0x04, sizeof(uint32), 0x60ff0020 };   // 0x60ff0020 : target_velocity            Int32
     OBJ RxPDO5 = { 0x1600, 0x05, sizeof(uint32), 0x607a0020 };   // 0x607a0020 : target_position            Int32
-    OBJ RxPDO6 = { 0x1600, 0x06, sizeof(uint32), 0x60B00020 };   // 0x60B00020 : position_offset            Int32
+    OBJ RxPDO6 = { 0x1600, 0x06, sizeof(uint32), 0x60810020 };   // 0x60810020 : profile_velocity            Int32
     // OBJ RxPDO7 = { 0x1600, 0x07, sizeof(), 0x };
     // OBJ RxPDO8 = { 0x1600, 0x08, sizeof(), 0x };
     OBJ SM2_choose_RxPDO = { 0x1C12, 0x01, sizeof(uint16), RxPDO1.index };
@@ -123,16 +123,16 @@ void PdoMapping(uint16 slave)
 /** Function for parameter setup and PdoMapping call **/
 int SetupParam(uint16 slave)
 {
-    // OBJ period = { 0x60C2, 0x01, sizeof(uint8), (uint8)1 };
-    //
+    // OBJ velocity_unit = { 0x60A9, 0x00, sizeof(uint32), (uint32)0x00B44700 };
+
     // /* SETUP of default values */
-    // retval = ec_SDOwrite(slave, period.index, period.sub_index, FALSE, sizeof(uint8), &(period.value), EC_TIMEOUTSAFE);
-    //
+    // ec_SDOwrite(slave, velocity_unit.index, velocity_unit.sub_index, FALSE, velocity_unit.size, &(velocity_unit.value), EC_TIMEOUTSAFE);
+
     //  /* Check that the parameters are set correctly */
     // int retval;
-    // uint8 period_value;
-    // retval = ec_SDOread(slave, period.index, period.sub_index, FALSE, &(period.size), &period_value, EC_TIMEOUTSAFE);
-    // printf("period=%u,size=%d,return=%d\n", period_value, period.size, retval);
+    // uint32 velocity_unit_value;
+    // retval = ec_SDOread(slave, velocity_unit.index, velocity_unit.sub_index, FALSE, &(velocity_unit.size), &velocity_unit_value, EC_TIMEOUTSAFE);
+    // printf("velocity unit=%u,size=%d,return=%d\n", velocity_unit_value, velocity_unit.size, retval);
 
     /* PDO mapping */
     PdoMapping(EPOS4);
@@ -253,6 +253,8 @@ OSAL_THREAD_FUNC simpletest(char *ifname)
                             case COMMAND_MODE_SINUSOIDAL_VELOCITY:
                                 pTcpPacket->decode(input.sine_value);
                                 break;
+                            case COMMAND_MODE_SET_ZERO:
+                                break;
                         }
                     }
                     osal_usleep(10000);
@@ -298,7 +300,7 @@ OSAL_THREAD_FUNC ecatthread()
     double t_loopStart, t_lastLoopStart, t_taskEnd;
     struct timespec ts;
 
-    printf("\nRT ecatthread started [%ld]\n", gettid());
+    // printf("\nRT ecatthread started [%ld]\n", gettid());
 
     struct sched_attr attr;
     attr.size = sizeof(attr);
@@ -334,7 +336,7 @@ OSAL_THREAD_FUNC ecatthread()
             /********************** LOOP TIME MEASUREMENT **********************/
             clock_gettime(CLOCK_MONOTONIC, &ts);
             t_loopStart = ts.tv_nsec;
-            printf("[Loop time: %.4lfms] |                        \r", (t_loopStart - t_lastLoopStart) / 1000000.0);
+            printf("\r| [Loop time: %.4lfms], ", (t_loopStart - t_lastLoopStart) / 1000000.0);
             t_lastLoopStart = t_loopStart;
 
             /*************************** LOOP TASKS ***************************/
@@ -362,6 +364,10 @@ OSAL_THREAD_FUNC ecatthread()
             {
                 switch (mode)
                 {
+                    case COMMAND_MODE_STOP_MOTOR:
+                        rxPDO->mode_of_operation = CSV;
+                        rxPDO->target_velocity = 0;
+                        break;
                     case COMMAND_MODE_CSV:
                         rxPDO->mode_of_operation = CSV;
                         rxPDO->target_velocity = input.velocity;
@@ -411,19 +417,36 @@ OSAL_THREAD_FUNC ecatthread()
                                 cwFlag = 1;
                         }
                         break;
-                    default:    // Stop motor (velocity = 0)
-                        rxPDO->mode_of_operation = CSV;
-                        rxPDO->target_velocity = 0;
+                    case COMMAND_MODE_SET_ZERO:
+                        if (txPDO->position_actual_value < -200000)
+                        {
+                            rxPDO->mode_of_operation = CSV;
+                            rxPDO->target_velocity = 20000;
+                        }
+                        else if (txPDO->position_actual_value > 200000)
+                        {
+                            rxPDO->mode_of_operation = CSV;
+                            rxPDO->target_velocity = -20000;
+                        }
+                        else
+                        {
+                            rxPDO->target_velocity = -(txPDO->position_actual_value / 10);
+                            if (txPDO->velocity_actual_value == 0)
+                            {
+                                input.position = 0;
+                                mode = COMMAND_MODE_PPM;
+                            }
+                        }
                         break;
                 }
             }
-            printf("| [Velocity: %6d], [Torque: %5d] ", txPDO->velocity_actual_value, txPDO->torque_actual_value);
-            fflush(stdout);
+            // printf("| [Velocity: %6d], [Torque: %5d] ", txPDO->velocity_actual_value, txPDO->torque_actual_value);
 
             short header = STREAM_MODE;
             LOG_DATA logData;
             logData.velocity_actual_value = txPDO->velocity_actual_value;
             logData.torque_actual_value = txPDO->torque_actual_value;
+            logData.position_actual_value = txPDO->position_actual_value;
             pUdpPacket->setCommandHeader(header);
             pUdpPacket->encode(logData);
             pUdpPacket->sendPacket();
@@ -437,7 +460,8 @@ OSAL_THREAD_FUNC ecatthread()
             /********************** TASK TIME MEASUREMENT **********************/
             clock_gettime(CLOCK_MONOTONIC, &ts);
             t_taskEnd = ts.tv_nsec;
-            printf("| [Task time: %.4lfms], ", (t_taskEnd - t_loopStart) / 1000000.0);
+            printf("[Task time: %.4lfms] |   ", (t_taskEnd - t_loopStart) / 1000000.0);
+            fflush(stdout);
         }
     }
 

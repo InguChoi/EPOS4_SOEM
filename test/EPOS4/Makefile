@@ -14,7 +14,7 @@ CC = g++
 CFLAGS += -I../../soem 
 CFLAGS += -I../../osal
 CFLAGS += -I../../oshw
-CFLAGS += -O3 -Wall -g
+CFLAGS += -O3 -Wall -g -Wno-narrowing
 
 
 # define any libraries to link into executable:
