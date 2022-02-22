@@ -94,6 +94,8 @@ typedef struct PACKED
 #define CSV 0x09
 #define CST 0x0A
 
+// EPOS4 Gear Ratio
+#define GEAR_RATIO  17
 
 ////////////////////////////////////////////////////
 ///////////////// GUI PC ----> RPI /////////////////
