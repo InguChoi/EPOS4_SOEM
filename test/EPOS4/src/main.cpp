@@ -51,7 +51,7 @@ void PdoMapping(uint16 slave)
     OBJ RxPDO3 = { 0x1600, 0x03, sizeof(uint32), 0x60710010 };   // 0x60710010 : target_torque              Int16
     OBJ RxPDO4 = { 0x1600, 0x04, sizeof(uint32), 0x60ff0020 };   // 0x60ff0020 : target_velocity            Int32
     OBJ RxPDO5 = { 0x1600, 0x05, sizeof(uint32), 0x607a0020 };   // 0x607a0020 : target_position            Int32
-    OBJ RxPDO6 = { 0x1600, 0x06, sizeof(uint32), 0x60810020 };   // 0x60810020 : profile_velocity            Int32
+    OBJ RxPDO6 = { 0x1600, 0x06, sizeof(uint32), 0x60810020 };   // 0x60810020 : profile_velocity           Int32
     // OBJ RxPDO7 = { 0x1600, 0x07, sizeof(), 0x };
     // OBJ RxPDO8 = { 0x1600, 0x08, sizeof(), 0x };
     OBJ SM2_choose_RxPDO = { 0x1C12, 0x01, sizeof(uint16), RxPDO1.index };
@@ -321,7 +321,6 @@ OSAL_THREAD_FUNC ecatthread()
     dorun = 0;
     ec_send_processdata();
     int cnt = 0;
-    bool Flag = false;
     int cnt2 = 0;
     int cwFlag = 1;
     while (1)
