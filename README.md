@@ -6,7 +6,7 @@ This is a real-time EtherCAT master application to control EPOS4 motor.
 ## PREREQUISITIES
 + This application was developed with Preempt-rt patched Raspberry Pi 4
 	+ Developed Preempt-rt linux kernel version is 4.19.y-rt
-	+ Developed OS devian version is 10(buster)
+	+ Developed OS debian version is 10(buster)
 	+ For more details, go to the [link](https://github.com/shkwon98/RPI_PreemptRT)
 + This application requires extra Ethernet port on Raspberry Pi
 	+ For example, WIZnet W5500 Ethernet module with SPI interface can be applied
