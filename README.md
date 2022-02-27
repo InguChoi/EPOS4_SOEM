@@ -53,7 +53,7 @@ This is a real-time EtherCAT master application to control EPOS4 motor.
       cd test/rt_motor_test/
       sudo ./rt_motor_test [ifname]
       
-* Control the motor with [EPOS4_GUI](https://github.com/shkwon98/EPOS4_GUI) Application:
+* Control the motor with the [EPOS4_GUI](https://github.com/shkwon98/EPOS4_GUI) Application:
 
       cd test/EPOS4/
       sudo ./main [ifname]
