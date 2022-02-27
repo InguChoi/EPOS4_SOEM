@@ -57,4 +57,3 @@ This is a real-time EtherCAT master application to control EPOS4 motor.
 
       cd test/EPOS4/
       sudo ./main [ifname]
-      
