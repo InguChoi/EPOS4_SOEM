@@ -33,3 +33,9 @@ Realtime EtherCAT master for EPOS4 motor control based on TCP/IP connection(Stri
 
       cd test/slaveinfo/
       sudo ./slaveinfo [ifname] -map
+
+* Control the motor with the [EPOS4_GUI](https://github.com/shkwon98/EPOS4_GUI/tree/ver.1.0) Application:
+
+      cd test/epos4/
+      sudo ./epos4 [ifname]
+      
