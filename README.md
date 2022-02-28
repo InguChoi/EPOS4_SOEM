@@ -3,7 +3,7 @@ This is a real-time EtherCAT master application to control EPOS4 motor.
 
 ---
 
-## PREREQUISITIES
+## PREREQUISITES
 + This application was developed with Preempt-rt patched Raspberry Pi 4
 	+ Developed Preempt-rt linux kernel version is 4.19.y-rt
 	+ Developed OS debian version is 10(buster)
