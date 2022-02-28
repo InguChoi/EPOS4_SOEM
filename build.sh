@@ -12,8 +12,6 @@ cd ../rt_motor_test
 make
 cd ../EPOS4
 make
-cd ../now_testing
-make
 cd ..
 cd ..
 

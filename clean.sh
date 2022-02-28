@@ -12,8 +12,6 @@ cd ../rt_motor_test
 make clean
 cd ../EPOS4
 make clean
-cd ../now_testing
-make clean
 cd ..
 cd ..
 
